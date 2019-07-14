@@ -1,5 +1,7 @@
 package promise
 
+import "log"
+
 // Callback s must be weakly typed because of Go type system
 type Callback func(interface{}) interface{}
 
@@ -109,4 +111,12 @@ func New(initial func(Resolver, Rejecter)) Promise {
 	}
 	go initial(res, rej)
 	return out
+}
+
+// Log just logs what comes to it and send it on it's way
+func Log(log *log.Logger) Callback {
+	return func(v interface{}) interface{} {
+		log.Print(v)
+		return v
+	}
 }

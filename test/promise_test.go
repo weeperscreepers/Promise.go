@@ -1,6 +1,7 @@
 package promise_test
 
 import (
+	"bytes"
 	"errors"
 	"log"
 	"testing"
@@ -24,7 +25,7 @@ func TestThen(t *testing.T) {
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, 21)
+	assert.Equal(t, 21, i)
 }
 func TestCatch(t *testing.T) {
 
@@ -41,7 +42,7 @@ func TestCatch(t *testing.T) {
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, EXPECTED)
+	assert.Equal(t, EXPECTED, i)
 }
 
 func TestNewResolve(t *testing.T) {
@@ -58,7 +59,7 @@ func TestNewResolve(t *testing.T) {
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, 200)
+	assert.Equal(t, 200, i)
 }
 
 func TestNewReject(t *testing.T) {
@@ -72,8 +73,7 @@ func TestNewReject(t *testing.T) {
 		},
 	).
 		Then(func(v interface{}) interface{} {
-			log.Print("we thened")
-			// t.Error("This should never be executed")
+			t.Error("This should never be executed")
 			ch <- v.(int)
 			return nil
 		}).
@@ -83,5 +83,29 @@ func TestNewReject(t *testing.T) {
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, 400)
+	assert.Equal(t, 400, i)
+}
+
+func TestLog(t *testing.T) {
+	var (
+		buf    bytes.Buffer
+		logger = log.New(&buf, "logger: ", 0)
+	)
+
+	ch := make(chan int)
+	go promise.Resolve(2).
+		Then(func(v interface{}) interface{} {
+			return v.(int) + 1
+		}).
+		Then(promise.Log(logger)).
+		Then(func(v interface{}) interface{} {
+			return v.(int) * 7
+		}).
+		Then(func(v interface{}) interface{} {
+			ch <- v.(int)
+			return nil
+		})
+	i := <-ch
+	assert.Equal(t, 21, i)
+	assert.Equal(t, buf.String(), "logger: 3\n")
 }

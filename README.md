@@ -75,3 +75,26 @@ Like them or not, you can't really argue that Promises have not sometimes been a
 	assert.Equal(t, i, 200)
 
 ```
+
+### Quickly log using the standard logging interface
+
+```golang
+
+    logger = log.New(os.Stdout, "LOG: ", 0)
+
+	ch := make(chan int)
+	go promise.Resolve(2).
+		Then(func(v interface{}) interface{} {
+			return v.(int) + 1
+		}).
+		Then(promise.Log(logger)).
+		Then(func(v interface{}) interface{} {
+			return v.(int) * 7
+		}).
+		Then(func(v interface{}) interface{} {
+			ch <- v.(int)
+			return nil
+		})
+	i := <-ch
+	assert.Equal(t, 21, i)
+```
