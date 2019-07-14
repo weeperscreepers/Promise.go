@@ -1,10 +1,4 @@
-package Promise
-
-import (
-	"errors"
-	"log"
-	"time"
-)
+package promise
 
 // Callback s must be weakly typed because of Go type system
 type Callback func(interface{}) interface{}
@@ -54,8 +48,8 @@ func Reject(err error) Promise {
 	return out
 }
 
-// classic Promise.then()
-func (in Promise) then(c Callback) Promise {
+// Then is the classic then you know and love
+func (in Promise) Then(c Callback) Promise {
 	out := make(Promise)
 	promise := <-in
 	if promise.err != nil {
@@ -68,8 +62,8 @@ func (in Promise) then(c Callback) Promise {
 	return Resolve(c(promise.value))
 }
 
-// In this implementation you cannot reject out of a .catch
-func (in Promise) catch(c ErrorCallback) Promise {
+// Catch catches an error - but you can't rethrow errors
+func (in Promise) Catch(c ErrorCallback) Promise {
 	out := make(Promise)
 	promise := <-in
 	if promise.err == nil {
@@ -80,33 +74,4 @@ func (in Promise) catch(c ErrorCallback) Promise {
 	}
 
 	return Resolve(c(promise.err))
-}
-
-func main() {
-	go func() {
-		log.Print("is async real ?")
-	}()
-	go Resolve(2).
-		then(func(v interface{}) interface{} {
-			return v.(int) + 1
-		}).
-		then(func(v interface{}) interface{} {
-			return v.(int) * 7
-		}).
-		then(func(v interface{}) interface{} {
-			log.Print("Answer: ", v)
-			return nil
-		})
-
-	go Reject(errors.New("This is an error")).
-		catch(func(e error) interface{} {
-			log.Print("There was an error: ", e)
-			return "We recovered from the error"
-		}).
-		then(func(v interface{}) interface{} {
-			log.Print("Finally: ", v)
-			return nil
-		})
-
-	time.Sleep(time.Second * 10)
 }

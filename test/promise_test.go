@@ -1,10 +1,15 @@
-## Promise.go
+package promise_test
 
-Like them or not, you can't really argue that Promises have not been a useful and succesful strategy in quite a few contexts.
+import (
+	"errors"
+	"log"
+	"testing"
 
-### Just like mom used to make them
+	"github.com/stretchr/testify/assert"
+	"github.com/weeperscreepers/promise"
+)
 
-```golang
+func TestThen(t *testing.T) {
 	ch := make(chan int)
 	go promise.Resolve(2).
 		Then(func(v interface{}) interface{} {
@@ -19,12 +24,9 @@ Like them or not, you can't really argue that Promises have not been a useful an
 		})
 	i := <-ch
 	assert.Equal(t, i, 21)
-```
+}
+func TestCatch(t *testing.T) {
 
-
-### Error handling - just like the real thing!
-
-```golang
 	EXPECTED := "We recovered from the error"
 
 	ch := make(chan string)
@@ -39,19 +41,4 @@ Like them or not, you can't really argue that Promises have not been a useful an
 		})
 	i := <-ch
 	assert.Equal(t, i, EXPECTED)
-```
-
-### Real async ! Don't terminate the main thread...
-
-```golang
-go promise.Resolve(2).
-    Then(func(v interface{}) interface{} {
-        time.sleep(10);
-        log.Print("never gonna happen");
-    })
-go promise.Resolve(2).
-    Then(func(v interface{}) interface{} {
-        time.sleep(10);
-        log.Print("main thread will exit");
-    })
-```
+}
