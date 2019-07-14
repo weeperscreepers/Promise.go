@@ -55,3 +55,23 @@ go promise.Resolve(2).
         log.Print("main thread will exit");
     })
 ```
+
+### Spread them everywhere !
+
+```golang
+	ch := make(chan int)
+	go promise.New(
+		func(res promise.Resolver, rej promise.Rejecter) {
+			log.Print("Fetching from the 'database' ;)")
+			time.Sleep(3) // do some async stuff
+			res(200)
+		},
+	).
+		Then(func(v interface{}) interface{} {
+			ch <- v.(int)
+			return nil
+		})
+	i := <-ch
+	assert.Equal(t, i, 200)
+
+```

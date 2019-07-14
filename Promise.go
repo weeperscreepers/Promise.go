@@ -51,27 +51,62 @@ func Reject(err error) Promise {
 // Then is the classic then you know and love
 func (in Promise) Then(c Callback) Promise {
 	out := make(Promise)
-	promise := <-in
-	if promise.err != nil {
-		go func() {
-			out <- promise
-		}()
-		return out
-	}
 
-	return Resolve(c(promise.value))
+	go func() {
+		promise := <-in
+		if promise.err != nil {
+			out <- promise
+		} else {
+			out <- Packet{
+				value: c(promise.value),
+			}
+		}
+	}()
+
+	return out
 }
 
 // Catch catches an error - but you can't rethrow errors
 func (in Promise) Catch(c ErrorCallback) Promise {
 	out := make(Promise)
-	promise := <-in
-	if promise.err == nil {
-		go func() {
-			out <- promise
-		}()
-		return out
-	}
 
-	return Resolve(c(promise.err))
+	go func() {
+		promise := <-in
+		if promise.err == nil {
+			out <- promise
+		} else {
+			out <- Packet{
+				value: c(promise.err),
+			}
+		}
+	}()
+	return out
+}
+
+// Resolver is a function signature that takes anything and turns it into a promise
+type Resolver func(data interface{})
+
+// Rejecter is a function signature that takes an error and turns it into an erroring promise
+type Rejecter func(err error)
+
+// New lets you wrap a promise over some asynchronous task
+func New(initial func(Resolver, Rejecter)) Promise {
+	out := make(Promise)
+
+	res := func(data interface{}) {
+		go func() {
+			out <- Packet{
+				value: data,
+			}
+		}()
+	}
+	rej := func(err error) {
+		go func() {
+			out <- Packet{
+				err: err,
+			}
+		}()
+	}
+	go initial(res, rej)
+	return out
 }

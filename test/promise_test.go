@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/weeperscreepers/promise"
@@ -41,4 +42,46 @@ func TestCatch(t *testing.T) {
 		})
 	i := <-ch
 	assert.Equal(t, i, EXPECTED)
+}
+
+func TestNewResolve(t *testing.T) {
+	ch := make(chan int)
+	go promise.New(
+		func(res promise.Resolver, rej promise.Rejecter) {
+			log.Print("Fetching from the 'database' ;)")
+			time.Sleep(3) // do some async stuff
+			res(200)
+		},
+	).
+		Then(func(v interface{}) interface{} {
+			ch <- v.(int)
+			return nil
+		})
+	i := <-ch
+	assert.Equal(t, i, 200)
+}
+
+func TestNewReject(t *testing.T) {
+	ch := make(chan int)
+	go promise.New(
+		func(res promise.Resolver, rej promise.Rejecter) {
+			log.Print("Fetching from the 'database' ;)")
+			time.Sleep(3) // do some async stuff
+			// res(200)
+			rej(errors.New("Error 400"))
+		},
+	).
+		Then(func(v interface{}) interface{} {
+			log.Print("we thened")
+			// t.Error("This should never be executed")
+			ch <- v.(int)
+			return nil
+		}).
+		Catch(func(e error) interface{} {
+			log.Print("There was an expected error: ", e)
+			ch <- 400
+			return nil
+		})
+	i := <-ch
+	assert.Equal(t, i, 400)
 }
