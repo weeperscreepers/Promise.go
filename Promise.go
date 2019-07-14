@@ -29,55 +29,65 @@ type Promise struct {
 	err   error
 }
 
+// Pipe is a Promise channel
+type Pipe chan Promise
+
 // Resolve a new promise
-func Resolve(data interface{}) Promise {
-	return Promise{
-		value: data,
-	}
+func Resolve(data interface{}) Pipe {
+	out := make(Pipe)
+	go func() {
+		out <- Promise{
+			value: data,
+		}
+	}()
+	return out
 }
 
 // Reject returns a promise in an erroring state
-func Reject(err error) Promise {
-	return Promise{
-		err: err,
-	}
+func Reject(err error) Pipe {
+	out := make(Pipe)
+	go func() {
+		out <- Promise{
+			err: err,
+		}
+	}()
+	return out
 }
 
 // classic Promise.then()
-func (promise Promise) then(c Callback) Promise {
+func (in Pipe) then(c Callback) Pipe {
+	out := make(Pipe)
+	promise := <-in
 	if promise.err != nil {
-		return promise
+		go func() {
+			out <- promise
+		}()
+		return out
 	}
 
-	ch := make(chan Promise)
-	go func() {
-		ch <- Resolve(c(promise.value))
-	}()
-
-	return <-ch
+	return Resolve(c(promise.value))
 }
 
 // In this implementation you cannot reject out of a .catch
-func (promise Promise) catch(c ErrorCallback) Promise {
+func (in Pipe) catch(c ErrorCallback) Pipe {
+	out := make(Pipe)
+	promise := <-in
 	if promise.err == nil {
-		return promise
+		go func() {
+			out <- promise
+		}()
+		return out
 	}
-	ch := make(chan Promise)
-	go func() {
-		ch <- Resolve(c(promise.err))
-	}()
 
-	return <-ch
+	return Resolve(c(promise.err))
 }
 
 func main() {
 	go func() {
-		time.Sleep(time.Second * 10)
 		log.Print("is async real ?")
 	}()
 	go Resolve(2).
 		then(func(v interface{}) interface{} {
-			time.Sleep(time.Second * 2)
 			return v.(int) + 1
 		}).
 		then(func(v interface{}) interface{} {
@@ -87,6 +97,7 @@ func main() {
 			log.Print("Answer: ", v)
 			return nil
 		})
+
 	go Reject(errors.New("This is an error")).
 		catch(func(e error) interface{} {
 			log.Print("There was an error: ", e)
@@ -97,4 +108,5 @@ func main() {
 			return nil
 		})
 
+	time.Sleep(time.Second * 10)
 }
