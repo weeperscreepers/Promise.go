@@ -44,16 +44,16 @@ Like them or not, you can't really argue that Promises have not sometimes been a
 ### Real async ! Don't terminate the main thread...
 
 ```golang
-go promise.Resolve(2).
-    Then(func(v interface{}) interface{} {
-        time.sleep(10);
-        log.Print("never gonna happen");
-    })
-go promise.Resolve(2).
-    Then(func(v interface{}) interface{} {
-        time.sleep(10);
-        log.Print("main thread will exit");
-    })
+    go promise.Resolve(2).
+        Then(func(v interface{}) interface{} {
+            time.sleep(10);
+            log.Print("never gonna happen");
+        })
+    go promise.Resolve(2).
+        Then(func(v interface{}) interface{} {
+            time.sleep(10);
+            log.Print("main thread will exit");
+        })
 ```
 
 ### Spread them everywhere !
