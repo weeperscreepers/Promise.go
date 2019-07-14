@@ -23,20 +23,20 @@ func InOrder(callbacks []Callback) Callback {
 	}
 }
 
-// Promise is a thin wrapper around an interface that we can hang functions on
-type Promise struct {
+// Packet is a thin wrapper around an interface that we can hang functions on
+type Packet struct {
 	value interface{}
 	err   error
 }
 
-// Pipe is a Promise channel
-type Pipe chan Promise
+// Promise is a Packet channel
+type Promise chan Packet
 
 // Resolve a new promise
-func Resolve(data interface{}) Pipe {
-	out := make(Pipe)
+func Resolve(data interface{}) Promise {
+	out := make(Promise)
 	go func() {
-		out <- Promise{
+		out <- Packet{
 			value: data,
 		}
 	}()
@@ -44,10 +44,10 @@ func Resolve(data interface{}) Pipe {
 }
 
 // Reject returns a promise in an erroring state
-func Reject(err error) Pipe {
-	out := make(Pipe)
+func Reject(err error) Promise {
+	out := make(Promise)
 	go func() {
-		out <- Promise{
+		out <- Packet{
 			err: err,
 		}
 	}()
@@ -55,8 +55,8 @@ func Reject(err error) Pipe {
 }
 
 // classic Promise.then()
-func (in Pipe) then(c Callback) Pipe {
-	out := make(Pipe)
+func (in Promise) then(c Callback) Promise {
+	out := make(Promise)
 	promise := <-in
 	if promise.err != nil {
 		go func() {
@@ -69,8 +69,8 @@ func (in Pipe) then(c Callback) Pipe {
 }
 
 // In this implementation you cannot reject out of a .catch
-func (in Pipe) catch(c ErrorCallback) Pipe {
-	out := make(Pipe)
+func (in Promise) catch(c ErrorCallback) Promise {
+	out := make(Promise)
 	promise := <-in
 	if promise.err == nil {
 		go func() {
