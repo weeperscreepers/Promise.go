@@ -1,6 +1,6 @@
 ## Promise.go
 
-Like them or not, you can't really argue that Promises have not been a useful and succesful strategy in quite a few contexts.
+Like them or not, you can't really argue that Promises have not sometimes been a useful and succesful strategy
 
 ### Just like mom used to make them
 
