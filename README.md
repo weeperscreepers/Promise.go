@@ -82,29 +82,6 @@ So with that said, here is a library implementing the `Promise` pattern well-kno
 
 ```
 
-### Quickly log using the standard logging interface
-
-```golang
-
-    logger = log.New(os.Stdout, "LOG: ", 0)
-
-	ch := make(chan int)
-	go promise.Resolve(2).
-		Then(func(v interface{}) interface{} {
-			return v.(int) + 1
-		}).
-		Then(promise.Log(logger)).
-		Then(func(v interface{}) interface{} {
-			return v.(int) * 7
-		}).
-		Then(func(v interface{}) interface{} {
-			ch <- v.(int)
-			return nil
-		})
-	i := <-ch
-	assert.Equal(t, 21, i)
-```
-
 ### But wait, there's more !
 
 You might think of promise chains like a type of abstracted callstack.
@@ -156,4 +133,30 @@ assert.Equal(t, 99, i)
 i = <-ch
 assert.Equal(t, 98, i)
 
+```
+
+### About logging
+
+Have you ever thought how nice it would be if `console.log` were idempotent?
+We implement `promise.Log` so you can log and passthrough with a single callback.
+
+```golang
+
+    logger = log.New(os.Stdout, "LOG: ", 0)
+
+	ch := make(chan int)
+	go promise.Resolve(2).
+		Then(func(v interface{}) interface{} {
+			return v.(int) + 1
+		}).
+		Then(promise.Log(logger)).
+		Then(func(v interface{}) interface{} {
+			return v.(int) * 7
+		}).
+		Then(func(v interface{}) interface{} {
+			ch <- v.(int)
+			return nil
+		})
+	i := <-ch
+	assert.Equal(t, 21, i)
 ```
