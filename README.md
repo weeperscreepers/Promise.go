@@ -8,6 +8,8 @@ But the nice thing about `chan`s is that they provide a nice primitive to build 
 
 So with that said, here is a library implementing the `Promise` pattern well-known (maligned?) by web devs everywhere. We implement the familiar promise behavior, as well as some new tricks.
 
+The following examples and more can be found in the /test directory.
+
 ### Just like mom used to make them
 
 ```golang
@@ -24,7 +26,7 @@ So with that said, here is a library implementing the `Promise` pattern well-kno
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, 21)
+	// assert.Equal(t, i, 21)
 ```
 
 
@@ -44,7 +46,7 @@ So with that said, here is a library implementing the `Promise` pattern well-kno
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, EXPECTED)
+	// assert.Equal(t, i, EXPECTED)
 ```
 
 ### Real async ! Don't terminate the main thread...
@@ -78,7 +80,7 @@ So with that said, here is a library implementing the `Promise` pattern well-kno
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, i, 200)
+	// assert.Equal(t, i, 200)
 
 ```
 
@@ -121,17 +123,17 @@ sayChannel1 := promise.Paused(100).
 
 sayChannel1.Step()
 i := <-ch
-assert.Equal(t, 100, i)
+// assert.Equal(t, 100, i)
 
 sayChannel0.Step()
 i = <-ch
-assert.Equal(t, 0, i)
+// assert.Equal(t, 0, i)
 
 sayChannel1.Continue()
 i = <-ch
-assert.Equal(t, 99, i)
+// assert.Equal(t, 99, i)
 i = <-ch
-assert.Equal(t, 98, i)
+// assert.Equal(t, 98, i)
 
 ```
 
@@ -158,5 +160,5 @@ We implement `promise.Log` so you can log and passthrough with a single callback
 			return nil
 		})
 	i := <-ch
-	assert.Equal(t, 21, i)
+	// assert.Equal(t, 21, i)
 ```
