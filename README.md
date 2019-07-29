@@ -6,7 +6,7 @@ Go `chan`s behave similarly to `async-await`, but might seem a little confusing 
 
 But the nice thing about `chan`s is that they provide a nice primitive to build asynchronous code on top of.
 
-So with that said, here is a library implementing the `Promise` pattern well-known (maligned?) by web devs everywhere.
+So with that said, here is a library implementing the `Promise` pattern well-known (maligned?) by web devs everywhere. We implement the familiar promise behavior, as well as some new tricks.
 
 ### Just like mom used to make them
 
