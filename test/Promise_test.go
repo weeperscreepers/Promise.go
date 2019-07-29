@@ -38,6 +38,7 @@ func TestCatch(t *testing.T) {
 			return EXPECTED
 		}).
 		Then(func(v interface{}) interface{} {
+			log.Print(v)
 			ch <- v.(string)
 			return nil
 		})
